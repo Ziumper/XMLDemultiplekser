@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +24,22 @@ namespace XMLDemultiplekser
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void LoadXMLFile(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            bool? canOpen = ofd.ShowDialog();
+            if(canOpen == true)
+            {
+                SetPathToXmlFile(ofd);
+            }
+          
+        }
+
+        private void SetPathToXmlFile(OpenFileDialog ofd)
+        {
+            pathToXMLFile.Text = ofd.FileName;
         }
     }
 }
