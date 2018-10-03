@@ -8,8 +8,8 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" MinWidth="103" />
+            <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -18,7 +18,8 @@
         </Grid.RowDefinitions>
         <Button Content="  Load XML file   " Grid.Row="0" Grid.Column="0" Click="LoadXMLFile" />
         <TextBox x:Name="pathToXMLFile" Grid.Row="0" Grid.Column="1" />
-        
+        <Button Content="Create Categories"  Grid.Row="1" Grid.Column="0" Click="CreateCategories" />
+
 
     </Grid>
 </Window>
