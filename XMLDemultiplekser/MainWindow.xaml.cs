@@ -51,7 +51,7 @@ namespace XMLDemultiplekser
                  * umieszczony w kategori głównej.
                  */
                 List<string> categories = GetListOfCategories(doc);
-                List<string> createdCategories = new List<string>();
+
                 XmlNode tableNode = doc.SelectSingleNode("/table");
 
                 XmlNodeList fieldLists = tableNode.SelectNodes("/field/");
@@ -61,33 +61,23 @@ namespace XMLDemultiplekser
                     if(isTarget)
                     {
                         string target = fieldNode.Attributes["target"].Value;
-                        bool isInCategories = categories.Contains(target);
-
                         bool isCategory = fieldNode.Attributes["type"].Value.Equals("category");
 
-                        if(isInCategories)
+                        XmlNode categoryNode = GetCategoryFieldNodeByTarget(target, doc);
+
+                        if (categoryNode == null)
                         {
-                            if (!isCategory)
-                            {
-                           
-                            }
-                            else 
-                            {
-                                bool isInCreatedCategories = createdCategories.Contains(target);
-                                if(isInCreatedCategories)
-                                {
-                                    XmlNode categoryNode = CreateCategoryNode(target, doc);
-                                    XmlNode panelNode = CreatePanelNode("test", target, 1, doc);
+                            categoryNode = CreateCategoryNode(target, doc);
+                            XmlNode panelNode = CreatePanelNode("testCaption", target, 1, doc);
+                            categoryNode.AppendChild(panelNode);
+                        }
 
-                                    panelNode.AppendChild(fieldNode);
-
-                                    categoryNode.AppendChild(panelNode);
-
-                                    doc.AppendChild(categoryNode);
-
-                                }
-
-                            }
+                        if (!isCategory)
+                        {
+                          
+                            XmlNodeList panels = categoryNode.SelectNodes("/panel/");
+                            XmlNode panel = panels.Item(1);
+                            panel.AppendChild(fieldNode);
                         }
                     }
                 }
