@@ -8,18 +8,25 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" MinWidth="103" />
-            <ColumnDefinition />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="25*" />
+            <ColumnDefinition Width="137*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
+        <TextBox x:Name="pathToXMLFile" Grid.Row="0" Grid.Column="2"  />
+        <Label Content="Path to file" Grid.Column="1" Grid.Row="0" />
+        <Label Content="Path to shared" Grid.Column="1" Grid.Row="1" />
+        <TextBox x:Name="pathToInherited" Grid.Row="1" Grid.Column="2"  />
         <Button Content="  Load XML file   " Grid.Row="0" Grid.Column="0" Click="LoadXMLFile" />
-        <TextBox x:Name="pathToXMLFile" Grid.Row="0" Grid.Column="1" />
-        <Button Content="Create Categories"  Grid.Row="1" Grid.Column="0" Click="CreateCategories" />
-
+        <Button Content="Create Categories" Grid.Row="3" Grid.Column="0" Click="CreateCategories" />
+        <Button Content="Name Showtable"  Grid.Row="2" Grid.Column="0" Click="NameShowtables"   />
+        <Button Content="Add Inherited to showtables"  Grid.Row="1" Grid.Column="0" Click="AddInherited"   />
+       
 
     </Grid>
 </Window>

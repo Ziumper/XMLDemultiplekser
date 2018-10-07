@@ -303,5 +303,120 @@ namespace XMLDemultiplekser
 
             return categories;
         }
+
+        private void NameShowtables(object sender, RoutedEventArgs e)
+        {
+            XmlDocument doc = new XmlDocument();
+            try
+            {
+                doc.Load(pathToXMLFile.Text);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return;
+            }
+
+            try
+            {
+
+                Dictionary<string,int> names = new Dictionary<string, int>();
+                XmlNodeList showtableNodes = doc.SelectNodes("/table/showtable");
+                
+
+                foreach (XmlNode showtableNode in showtableNodes)
+                {
+                    XmlNode queryNode = showtableNode.SelectSingleNode("query");
+                    string table = queryNode.Attributes["table"]?.Value;
+                    bool isUnique = !names.Keys.Contains(table);
+                    if(isUnique)
+                    {
+                        names.Add(table, 0);
+                    }else
+                    {
+                        int index = 0;
+                        names.TryGetValue(table, out index);
+
+                        index++;
+                        table = table + index.ToString();
+
+                        names.Remove(table);
+
+                        names.Add(table, index);
+                    }
+
+                    XmlAttribute nameAttribute = showtableNode.Attributes["name"];
+
+                    if(nameAttribute != null)
+                    {
+                        nameAttribute.Value = table;
+                    }
+                    else
+                    {
+                        nameAttribute = doc.CreateAttribute("name");
+                        nameAttribute.Value = table;
+                        showtableNode.Attributes.Append(nameAttribute);
+                    }
+                   
+                }
+
+                doc.Save(pathToXMLFile.Text);
+
+                MessageBox.Show("Names assigned successfuly!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error occured:\n" + ex.Message + "\n StackTrace:" + ex.StackTrace);
+            }
+        }
+
+        private void AddInherited(object sender, RoutedEventArgs e)
+        {
+            XmlDocument doc = new XmlDocument();
+            try
+            {
+                doc.Load(pathToXMLFile.Text);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return;
+            }
+
+            try
+            {
+                XmlNodeList showtableNodes = doc.SelectNodes("/table/showtable");
+
+
+                foreach (XmlNode showtableNode in showtableNodes)
+                {
+                    XmlNode queryNode = showtableNode.SelectSingleNode("query");
+                    string table = queryNode.Attributes["table"]?.Value;
+                    string path = pathToInherited.Text + table + ".xml";
+                    
+                   
+                    XmlAttribute nameAttribute = showtableNode.Attributes["inherited"];
+                    if (nameAttribute != null)
+                    {
+                        nameAttribute.Value = path;
+                    }
+                    else
+                    {
+                        nameAttribute = doc.CreateAttribute("inherited");
+                        nameAttribute.Value = path;
+                        showtableNode.Attributes.Append(nameAttribute);
+                    }
+
+                }
+
+                doc.Save(pathToXMLFile.Text);
+
+                MessageBox.Show("Inherited assigned successfuly!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error occured:\n" + ex.Message + "\n StackTrace:" + ex.StackTrace);
+            }
+        }
     }
 }
