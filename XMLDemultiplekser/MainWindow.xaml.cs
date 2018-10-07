@@ -22,9 +22,12 @@ namespace XMLDemultiplekser
     /// </summary>
     public partial class MainWindow : Window
     {
+        
+
         public MainWindow()
         {
             InitializeComponent();
+            
         }
 
         private void LoadXMLFile(object sender, RoutedEventArgs e)
@@ -41,63 +44,183 @@ namespace XMLDemultiplekser
         private void CreateCategories(object sender,RoutedEventArgs e)
         {
             XmlDocument doc = new XmlDocument();
-            if (pathToXMLFile.IsInitialized)
-            {
+            try {
                 doc.Load(pathToXMLFile.Text);
-                /*
-                 * 1. Podlicz targety i stwórz listę ze stringami 
-                 * 2. Stwórz dla każdego pola z targetem kategorie
-                 * 3. Wpisz każde pole z targetem do noda z kategorią , jeżeli field nie ma targetu powinien on zostać 
-                 * umieszczony w kategori głównej.
-                 */
-                List<string> categories = GetListOfCategories(doc);
+            }catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return;
+            }
+
+            try
+            {
+                Dictionary<string, string> categories = GetListOfCategories(doc);
 
                 XmlNode tableNode = doc.SelectSingleNode("/table");
 
-                XmlNodeList fieldLists = tableNode.SelectNodes("/field/");
-                foreach(XmlNode fieldNode in fieldLists)
+                XmlNodeList fieldLists = tableNode.SelectNodes("field");
+                foreach (XmlNode fieldNode in fieldLists)
                 {
-                    bool isTarget = fieldNode.Attributes["target"].Value != null;
-                    if(isTarget)
-                    {
-                        string target = fieldNode.Attributes["target"].Value;
-                        bool isCategory = fieldNode.Attributes["type"].Value.Equals("category");
-
-                        XmlNode categoryNode = GetCategoryFieldNodeByTarget(target, doc);
-
-                        if (categoryNode == null)
-                        {
-                            categoryNode = CreateCategoryNode(target, doc);
-                            XmlNode panelNode = CreatePanelNode("testCaption", target, 1, doc);
-                            categoryNode.AppendChild(panelNode);
-                        }
-
-                        if (!isCategory)
-                        {
-                          
-                            XmlNodeList panels = categoryNode.SelectNodes("/panel/");
-                            XmlNode panel = panels.Item(1);
-                            panel.AppendChild(fieldNode);
-                        }
-                    }
+                    AppendFieldToCategory(fieldNode, doc, tableNode, categories);
                 }
-               
-               
-                
-            }else
-            {
-                MessageBox.Show("XML file is not loaded");
+
+                List<XmlNode> categoryNodes = GetCategoriesFields(tableNode);
+
+                MoveCategoriesNodeOnTheBegining(categoryNodes, tableNode);
+
+                doc.Save(pathToXMLFile.Text);
+
+                MessageBox.Show("Categories created succesfully!");
             }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Error occured:\n" + ex.Message + "\n StackTrace:" +  ex.StackTrace);
+            }
+           
+
+
+        }
+
+        private void AppendFieldToCategory(XmlNode fieldNode,XmlDocument doc, XmlNode tableNode,Dictionary<string,string> categories)
+        {
+            bool isTarget = fieldNode.Attributes["target"]?.Value != null;
+            if (isTarget)
+            {
+                string target = fieldNode.Attributes["target"].Value;
+                string categoryValue = fieldNode.Attributes["type"].Value;
+
+                bool isCategory = categoryValue != null && categoryValue.Equals("category");
+
+                XmlNode categoryNode = GetCategoryFieldNodeByTarget(target, doc);
+
+                if (categoryNode == null)
+                {
+                    categoryNode = AppendCategoryToTable(target,categories[target], doc, tableNode);
+                }
+
+                if (!isCategory)
+                {
+                    AppendFieldToPanel(target,categories[target], categoryNode, doc, tableNode, fieldNode);
+                }
+            }
+            else
+            {
+                string firstTarget = categories.Keys.First();
+                XmlNode categoryNode = GetCategoryFieldNodeByTarget(firstTarget, doc);
+
+                if (categoryNode == null)
+                {
+                    categoryNode = AppendCategoryToTable(firstTarget,categories[firstTarget], doc, tableNode);
+                }
+
+                AppendFieldToPanel(firstTarget, categories[firstTarget], categoryNode, doc, tableNode, fieldNode);
+
+            }
+        }
+
+        private XmlNode AppendCategoryToTable(string target,string caption,XmlDocument doc,XmlNode tableNode)
+        {
+            XmlNode categoryNode = CreateCategoryNode(target, doc);
+            int index = 0;
+            XmlNode firstPanelNode = CreatePanelNode(caption, target, index, doc);
+            categoryNode.AppendChild(firstPanelNode);
+            tableNode.AppendChild(categoryNode);
+            return categoryNode;
+        }
+
+        private void AppendFieldToPanel(string target,string caption,XmlNode categoryNode,XmlDocument doc, XmlNode tableNode,XmlNode fieldNode)
+        {
+            XmlNodeList panels = categoryNode.SelectNodes("panel");
+            if (panels == null)
+            {
+                int index = 0;
+                var firstPanel = CreatePanelNode(caption, target, index, doc);
+                categoryNode.AppendChild(firstPanel);
+                panels = categoryNode.SelectNodes("panel");
+            }
+
+            XmlAttribute mTypeAttribute = fieldNode.Attributes["mtype"];
+            if(mTypeAttribute != null)
+            {
+                bool isLabel = mTypeAttribute.Value.Equals("biglabel");
+                if(isLabel)
+                {
+                    string panelCaption = fieldNode.Attributes["caption"].Value;
+                    int index = categoryNode.SelectNodes("panel").Count;
+                    XmlNode labelPanel = CreatePanelNode(panelCaption, target, index, doc);
+                    categoryNode.AppendChild(labelPanel);
+                    tableNode.RemoveChild(fieldNode);
+                    return;
+                }
+            }
+            
+            XmlNode panel = panels.Item(panels.Count - 1);
+            RemoveTargetAttribute(fieldNode);
+            tableNode.RemoveChild(fieldNode);
+            panel.AppendChild(fieldNode);
+            
+        }
+
+        
+        private void RemoveTargetAttribute(XmlNode fieldNode)
+        {
+            XmlAttribute targetAttribute = fieldNode.Attributes["target"];
+            if (targetAttribute != null)
+            {
+                fieldNode.Attributes.Remove(targetAttribute);
+            }
+        }
+
+        private void MoveCategoriesNodeOnTheBegining(List<XmlNode> categoryNodes, XmlNode tableNode)
+        {
+            var firstNode = tableNode.ChildNodes.Item(0);
+
+            string type = firstNode.Attributes["type"]?.Value;
+            if (type != null)
+            {
+                if (type.Equals("category"))
+                {
+                    return;
+                }
+            }
+
+            foreach (XmlNode node in categoryNodes)
+            {
+                tableNode.RemoveChild(node);
+                tableNode.InsertBefore(node,firstNode);
+            }
+            
+        }
+
+
+
+        private List<XmlNode> GetCategoriesFields(XmlNode tableNode)
+        {
+            List<XmlNode> listOfXmlNodes = new List<XmlNode>();
+            XmlNodeList nodes = tableNode.SelectNodes("field");
+            foreach(XmlNode node in nodes)
+            {
+                string typeCategoryValue = node.Attributes["type"]?.Value;
+                bool isCategory = typeCategoryValue != null && typeCategoryValue.Equals("category");
+                if(isCategory)
+                {
+                    listOfXmlNodes.Add(node);   
+                }
+            }
+
+            return listOfXmlNodes;
         }
 
         private XmlNode GetCategoryFieldNodeByTarget(string target, XmlDocument doc) 
         {
-            XmlNodeList xmlNodeList = doc.SelectNodes("/table/field/");
+            XmlNodeList xmlNodeList = doc.SelectNodes("/table/field");
             
             foreach(XmlNode xmlNode in xmlNodeList)
             {
-                bool haveTheSameTarget = xmlNode.Attributes["target"].Value.Equals(target);
-                bool isCategory = xmlNode.Attributes["type"].Value.Equals("category");
+                string targetValue = xmlNode.Attributes["target"]?.Value;
+                bool haveTheSameTarget = targetValue != null && targetValue.Equals(target);
+                string categoryValue = xmlNode.Attributes["type"]?.Value;
+                bool isCategory =  categoryValue != null && categoryValue.Equals("category");
                 if (haveTheSameTarget && isCategory)
                 {
                     return xmlNode;
@@ -140,6 +263,7 @@ namespace XMLDemultiplekser
             categoryNode.Attributes.Append(categoryType);
             categoryNode.Attributes.Append(categoryTarget);
 
+            
            
             return categoryNode;
         }
@@ -149,18 +273,31 @@ namespace XMLDemultiplekser
             pathToXMLFile.Text = ofd.FileName;
         }
 
-        private List<string> GetListOfCategories(XmlDocument loadedDocument)
+        private Dictionary<string,string> GetListOfCategories(XmlDocument loadedDocument)
         {
-            List<string> categories = new List<string>();
+            Dictionary<string, string> categories = new Dictionary<string, string>();
             XmlNodeList sectionNodes = loadedDocument.SelectNodes("/table/form/section");
             foreach(XmlNode node in sectionNodes)
             {
-                XmlNodeList pagesNodes = node.SelectNodes("/pages/");
+                XmlNodeList pagesNodes = node.SelectNodes("page");
                 foreach(XmlNode pageNode in pagesNodes)
                 {
-                    string target = pageNode.Attributes["name"].Value;
-                    categories.Add(target);
-
+                    string target = pageNode.Attributes["name"]?.Value;
+                    string caption = pageNode.Attributes["caption"]?.Value;
+                 
+                    if (!categories.Keys.Contains(target))
+                    {
+                        XmlAttribute showtitleAttribute = pageNode.Attributes["showtitle"];
+                        if (showtitleAttribute == null)
+                        {
+                            showtitleAttribute = loadedDocument.CreateAttribute("showtitle");
+                            showtitleAttribute.Value = "false";
+                            pageNode.Attributes.Append(showtitleAttribute);
+                        }
+                        showtitleAttribute.Value = "false";
+                        categories.Add(target, caption);
+                    }
+                    
                 }
             }
 
