@@ -27,7 +27,6 @@ namespace XMLDemultiplekser
         public MainWindow()
         {
             InitializeComponent();
-            
         }
 
         private void LoadXMLFile(object sender, RoutedEventArgs e)
@@ -38,7 +37,6 @@ namespace XMLDemultiplekser
             {
                 SetPathToXmlFile(ofd);
             }
-          
         }
 
         private void CreateCategories(object sender,RoutedEventArgs e)
@@ -67,6 +65,7 @@ namespace XMLDemultiplekser
                 List<XmlNode> categoryNodes = GetCategoriesFields(tableNode);
 
                 MoveCategoriesNodeOnTheBegining(categoryNodes, tableNode);
+                SetShowtitleAttribute(categories, tableNode,categoryNodes,doc);
 
                 doc.Save(pathToXMLFile.Text);
 
@@ -78,6 +77,43 @@ namespace XMLDemultiplekser
             }
            
 
+
+        }
+
+        private void SetShowtitleAttribute(Dictionary<string, string> categories, XmlNode tableNode,List<XmlNode> categoryNodes,XmlDocument document)
+        {
+            List<string> pagesNamesWithTargets = new List<string>();
+
+            foreach (XmlNode categoryNode in categoryNodes)
+            {
+                var target = categoryNode.Attributes["target"].Value;
+                pagesNamesWithTargets.Add(target);
+            }
+
+            XmlNodeList sectionNodes = tableNode.SelectNodes("form/section");
+
+            foreach(XmlNode section in sectionNodes)
+            {
+                XmlNodeList pageNodes = section.SelectNodes("page");
+
+                foreach (XmlNode pageNode in pageNodes)
+                {
+                    string pageName = pageNode.Attributes["name"].Value;
+                    bool haveCategory = pagesNamesWithTargets.Contains(pageName);
+                    if (haveCategory)
+                    {
+                        XmlAttribute pageShowTitleAttribute = pageNode.Attributes["showtitle"];
+                        if (pageShowTitleAttribute == null)
+                        {
+                            pageShowTitleAttribute = document.CreateAttribute("showtitle");
+                        }
+
+                        pageShowTitleAttribute.Value = "false";
+                    }
+                }
+            }
+
+            
 
         }
 
