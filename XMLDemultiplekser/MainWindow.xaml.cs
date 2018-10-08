@@ -56,7 +56,7 @@ namespace XMLDemultiplekser
             {
                 Dictionary<string, string> categories = GetListOfCategories(doc);
 
-                XmlNode tableNode = doc.SelectSingleNode("/table");
+                XmlNode tableNode = doc.SelectSingleNode("table");
 
                 XmlNodeList fieldLists = tableNode.SelectNodes("field");
                 foreach (XmlNode fieldNode in fieldLists)
@@ -83,52 +83,52 @@ namespace XMLDemultiplekser
 
         private void AppendFieldToCategory(XmlNode fieldNode,XmlDocument doc, XmlNode tableNode,Dictionary<string,string> categories)
         {
-            bool isTarget = fieldNode.Attributes["target"]?.Value != null;
-            if (isTarget)
+            bool haveTarget = fieldNode.Attributes["target"]?.Value != null;
+            if (haveTarget)
             {
-                string target = fieldNode.Attributes["target"].Value;
-                string categoryValue = fieldNode.Attributes["type"].Value;
-
-                bool isCategory = categoryValue != null && categoryValue.Equals("category");
-
-                XmlNode categoryNode = GetCategoryFieldNodeByTarget(target, doc);
-
-                if (categoryNode == null)
-                {
-                   if(!categories.Keys.Contains(target))
-                    {
-                        tableNode.RemoveChild(fieldNode);
-                    }
-                    else
-                    {
-                        categoryNode = AppendCategoryToTable(target, categories[target], doc, tableNode);
-                    }
-                }
-
-                if (!isCategory)
-                {
-                    if (!categories.Keys.Contains(target))
-                    {
-                        tableNode.RemoveChild(fieldNode);
-                    }else
-                    {
-                        AppendFieldToPanel(target, categories[target], categoryNode, doc, tableNode, fieldNode);
-                    }
-                    
-                }
+                AppendFieldWithTargetToCategory(fieldNode, doc, categories, tableNode);
             }
             else
             {
-                string firstTarget = categories.Keys.First();
-                XmlNode categoryNode = GetCategoryFieldNodeByTarget(firstTarget, doc);
+                AppendFieldWithoutTargetToCategory(categories, doc, tableNode, fieldNode);
+            }
+        }
 
-                if (categoryNode == null)
+        private void AppendFieldWithoutTargetToCategory(Dictionary<string,string> categories,XmlDocument doc,XmlNode tableNode, XmlNode fieldNode)
+        {
+            string firstTarget = categories.Keys.First();
+            XmlNode categoryNode = GetCategoryFieldNodeByTarget(firstTarget, doc);
+
+            if (categoryNode == null)
+            {
+                categoryNode = AppendCategoryToTable(firstTarget, categories[firstTarget], doc, tableNode);
+            }
+
+            AppendFieldToPanel(firstTarget, categories[firstTarget], categoryNode, doc, tableNode, fieldNode);
+
+        }
+
+        private void AppendFieldWithTargetToCategory(XmlNode fieldNode,XmlDocument doc,Dictionary<string,string> categories,XmlNode tableNode)
+        {
+            string target = fieldNode.Attributes["target"].Value;
+
+            string categoryValue = fieldNode.Attributes["type"].Value;
+            bool isCategory = categoryValue != null && categoryValue.Equals("category");
+            XmlNode categoryNode = GetCategoryFieldNodeByTarget(target, doc);
+
+            if (categoryNode == null)
+            {
+                if (!categories.Keys.Contains(target))
                 {
-                    categoryNode = AppendCategoryToTable(firstTarget,categories[firstTarget], doc, tableNode);
+                    categories.Add(target, target);   
                 }
 
-                AppendFieldToPanel(firstTarget, categories[firstTarget], categoryNode, doc, tableNode, fieldNode);
+                categoryNode = AppendCategoryToTable(target, categories[target], doc, tableNode);
+            }
 
+            if (!isCategory)
+            {
+                AppendFieldToPanel(target, categories[target], categoryNode, doc, tableNode, fieldNode);
             }
         }
 
@@ -187,23 +187,14 @@ namespace XMLDemultiplekser
 
         private void MoveCategoriesNodeOnTheBegining(List<XmlNode> categoryNodes, XmlNode tableNode)
         {
-            var firstNode = tableNode.ChildNodes.Item(0);
-            XmlAttribute typeAttribute = firstNode.Attributes["type"];
-            string type = typeAttribute?.Value;
-            if (type != null)
-            {
-                if (type.Equals("category"))
-                {
-                    return;
-                }
-            }
+            var formNode = tableNode.SelectSingleNode("form");
 
             foreach (XmlNode node in categoryNodes)
             {
                 tableNode.RemoveChild(node);
-                tableNode.InsertBefore(node,firstNode);
+                tableNode.InsertBefore(node, formNode);
             }
-            
+
         }
 
 
@@ -301,20 +292,6 @@ namespace XMLDemultiplekser
                  
                     if (!categories.Keys.Contains(target))
                     {
-                        /*
-                         * TO DO 
-                         * Check if there is a category with this page and then 
-                         * set showtitle to false, right now it is seting to all showtitle= false;
-                        XmlAttribute showtitleAttribute = pageNode.Attributes["showtitle"];
-                        if (showtitleAttribute == null)
-                        {
-                            showtitleAttribute = loadedDocument.CreateAttribute("showtitle");
-                            showtitleAttribute.Value = "false";
-                            pageNode.Attributes.Append(showtitleAttribute);
-                        }
-                         showtitleAttribute.Value = "false";
-                        */
-
                         categories.Add(target, caption);
                     }
                     
