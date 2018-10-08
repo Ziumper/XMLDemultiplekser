@@ -107,7 +107,14 @@ namespace XMLDemultiplekser
 
                 if (!isCategory)
                 {
-                    AppendFieldToPanel(target,categories[target], categoryNode, doc, tableNode, fieldNode);
+                    if (!categories.Keys.Contains(target))
+                    {
+                        tableNode.RemoveChild(fieldNode);
+                    }else
+                    {
+                        AppendFieldToPanel(target, categories[target], categoryNode, doc, tableNode, fieldNode);
+                    }
+                    
                 }
             }
             else
@@ -181,8 +188,8 @@ namespace XMLDemultiplekser
         private void MoveCategoriesNodeOnTheBegining(List<XmlNode> categoryNodes, XmlNode tableNode)
         {
             var firstNode = tableNode.ChildNodes.Item(0);
-
-            string type = firstNode.Attributes["type"]?.Value;
+            XmlAttribute typeAttribute = firstNode.Attributes["type"];
+            string type = typeAttribute?.Value;
             if (type != null)
             {
                 if (type.Equals("category"))
