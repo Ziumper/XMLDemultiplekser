@@ -95,7 +95,14 @@ namespace XMLDemultiplekser
 
                 if (categoryNode == null)
                 {
-                    categoryNode = AppendCategoryToTable(target,categories[target], doc, tableNode);
+                   if(!categories.Keys.Contains(target))
+                    {
+                        tableNode.RemoveChild(fieldNode);
+                    }
+                    else
+                    {
+                        categoryNode = AppendCategoryToTable(target, categories[target], doc, tableNode);
+                    }
                 }
 
                 if (!isCategory)
