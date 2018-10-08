@@ -294,6 +294,10 @@ namespace XMLDemultiplekser
                  
                     if (!categories.Keys.Contains(target))
                     {
+                        /*
+                         * TO DO 
+                         * Check if there is a category with this page and then 
+                         * set showtitle to false, right now it is seting to all showtitle= false;
                         XmlAttribute showtitleAttribute = pageNode.Attributes["showtitle"];
                         if (showtitleAttribute == null)
                         {
@@ -301,7 +305,9 @@ namespace XMLDemultiplekser
                             showtitleAttribute.Value = "false";
                             pageNode.Attributes.Append(showtitleAttribute);
                         }
-                        showtitleAttribute.Value = "false";
+                         showtitleAttribute.Value = "false";
+                        */
+
                         categories.Add(target, caption);
                     }
                     
