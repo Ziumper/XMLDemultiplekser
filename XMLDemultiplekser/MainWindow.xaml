@@ -17,6 +17,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <TextBox x:Name="pathToXMLFile" Grid.Row="0" Grid.Column="2"  />
         <Label Content="Path to file" Grid.Column="1" Grid.Row="0" />
@@ -26,7 +27,7 @@
         <Button Content="Create Categories" Grid.Row="3" Grid.Column="0" Click="CreateCategories" />
         <Button Content="Name Showtable"  Grid.Row="2" Grid.Column="0" Click="NameShowtables"   />
         <Button Content="Add Inherited to showtables"  Grid.Row="1" Grid.Column="0" Click="AddInherited"   />
-       
+        <Button Content="Create Xml Include files"  Grid.Row="4" Grid.Column="0" Click="CreateXmlFiles"   />
 
     </Grid>
 </Window>

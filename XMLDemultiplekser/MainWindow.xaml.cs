@@ -12,8 +12,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
+
 using System.Xml;
+using System.IO;
 
 namespace XMLDemultiplekser
 {
@@ -451,5 +452,100 @@ namespace XMLDemultiplekser
                 MessageBox.Show("Error occured:\n" + ex.Message + "\n StackTrace:" + ex.StackTrace);
             }
         }
+
+        private void CreateXmlFiles(object sender, RoutedEventArgs e)
+        {
+          
+            try
+            {
+                XmlDocument configDocument = new XmlDocument();
+                string root = Path.GetDirectoryName(pathToXMLFile.Text);
+                CreateIncludeFolder(root);
+                configDocument.Load(pathToXMLFile.Text);
+                CreateIncludedFiles(configDocument, root, "module/tables/table", "module/tables", "name");
+                CreateIncludedFiles(configDocument, root, "module/list_tables/list", "module/list_tables", "caption");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return;
+            }
+
+      
+        }
+
+        private void CreateIncludedFiles(XmlDocument configDocument, string root,string pathToListNodes,string pathToParent,string attributeKey)
+        {
+            XmlNodeList nodeList = configDocument.SelectNodes(pathToListNodes);
+            XmlNode parentNode = configDocument.SelectSingleNode(pathToParent);
+
+            int index = 0;
+
+            foreach(XmlNode node in nodeList)
+            {
+                string includedPath = CreateIncludeFile(node, root, attributeKey,index);
+                index++;
+                parentNode.RemoveChild(node);
+                XmlNode includeNode = configDocument.CreateNode(XmlNodeType.Element, "include", "");
+                includeNode.InnerText = includedPath;
+                parentNode.AppendChild(includeNode);
+            }
+
+            configDocument.Save(pathToXMLFile.Text);
+        }
+
+        private string CreateIncludeFile(XmlNode tableNode, string root, string attributeKey, int index)
+        {
+
+            XmlAttribute nameAttribute = tableNode.Attributes[attributeKey];
+            if (nameAttribute != null)
+            {
+                string fileName = nameAttribute.Value;
+              
+
+                string fullPath = root + "\\inc\\" + fileName + ".xml";
+                if (File.Exists(fullPath))
+                {
+                    XmlAttribute idnameAttribute = tableNode.Attributes["idname"];
+                    if (idnameAttribute != null)
+                    {
+                        fileName = fileName + "_" + idnameAttribute.Value;
+                        fullPath = root + "\\inc\\" + fileName + ".xml";
+                    }
+                    else
+                    {
+                        fileName = fileName + index.ToString();
+                        fullPath = fullPath = root + "\\inc\\" + fileName + ".xml";
+                    }
+                }
+
+
+                XmlDocument tableDocument = new XmlDocument();
+                XmlNode newTableNode = tableDocument.ImportNode(tableNode,true);
+                tableDocument.AppendChild(newTableNode);
+
+              
+                tableDocument.Save(fullPath);
+
+                string includePath = "inc/" + fileName + ".xml";
+
+                return includePath;
+            }
+
+            return null;
+        }
+
+        private void CreateIncludeFolder(string root)
+        {
+            string subPath = "inc";
+            string fullPath = root + "/" + subPath;
+            bool exist = Directory.Exists(fullPath);
+            if (!exist)
+            {
+                Directory.CreateDirectory(fullPath);
+            }
+        }
+
+  
     }
 }
