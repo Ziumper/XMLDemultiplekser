@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -546,6 +547,136 @@ namespace XMLDemultiplekser
             }
         }
 
-  
+
+        private void RemovePanelsAndCreateLabels(string path)
+        {
+            /*
+            1.Wczytaj wszystkie pliki xml z danego folderu
+            2.Usuń panele oraz stwórz labele.
+                2.0 - Nadaj targety wszystkim fieldom z kategorii
+                    2.1.1 - Sprawdzić czy dany panel ma inherited jeżeli ma:
+                        2.1.1.1 - pominąć i lecieć dalej lub, odczytać ścieżkę z inherita, wczytać pola i dorzucić.
+                2.1 - Panele zastąp labelami.
+                2.2 - Przenieś wszystkie fieldy poza kategorie
+                2.3 - Usuń panel
+                2.4 - Usuń kategorie.
+            3.Ciesz się z dobrze wykonanej pracy!
+            */
+
+            //Na razie tylko jeden plik
+            XmlDocument doc = new XmlDocument();
+            try
+            {
+                doc.Load(path);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return;
+            }
+
+
+            XmlNode tableNode = doc.SelectSingleNode("table");
+            List<XmlNode> categories = GetCategoriesFields(tableNode);
+
+            foreach (var category in categories)
+            {
+                XmlAttribute targetAttribute = category.Attributes["target"];
+
+                bool inheritedInPanel = false;
+                XmlNodeList xmlPanels = category.SelectNodes("panel");
+
+
+                foreach (XmlNode xmlPanelNode in xmlPanels)
+                {
+                    //sprawdź czy panel ma inherited 
+                    XmlAttribute inherited = xmlPanelNode.Attributes["inherited"];
+                    if (inherited != null)
+                    {
+                        inheritedInPanel = true;
+                    }else
+                    {
+                        //tworzę label i wyrzucam poza kategorię
+                        XmlNode labelField = doc.CreateNode(XmlNodeType.Element, "field", "");
+
+                        //Tworzę attrubyty do labela
+                        XmlAttribute nameAttribute = xmlPanelNode.Attributes["name"];
+                        XmlAttribute typeAttribute = doc.CreateAttribute("type");
+                        typeAttribute.Value = "empty";
+                        XmlAttribute mTypeAttribute = doc.CreateAttribute("mtype");
+                        mTypeAttribute.Value = "biglabel";
+                        XmlAttribute captionAttribute = xmlPanelNode.Attributes["caption"];
+                        XmlAttribute heightAttribute = doc.CreateAttribute("height");
+                        heightAttribute.Value = "20";
+                        XmlAttribute anchorBottomAttribute = doc.CreateAttribute("anchor_bottom");
+                        anchorBottomAttribute.Value = "false";
+                        XmlAttribute widthAttribute = doc.CreateAttribute("width");
+                        widthAttribute.Value = "407";
+                        XmlAttribute leftAttribute = doc.CreateAttribute("left");
+                        leftAttribute.Value = "0";
+
+                        XmlAttribute labelTargetAttribute = doc.CreateAttribute("target");
+                        labelTargetAttribute.Value = targetAttribute.Value;
+
+                        //dodaje atrybuty do labela
+                        labelField.Attributes.Append(nameAttribute);
+                        labelField.Attributes.Append(typeAttribute);
+                        labelField.Attributes.Append(mTypeAttribute);
+                        labelField.Attributes.Append(captionAttribute);
+                        labelField.Attributes.Append(heightAttribute);
+                        labelField.Attributes.Append(anchorBottomAttribute);
+                        labelField.Attributes.Append(widthAttribute);
+                        labelField.Attributes.Append(leftAttribute);
+
+                        //dodaje target dla labela
+                        labelField.Attributes.Append(labelTargetAttribute);
+
+                        //przerzucam go do node dziadka czyli do tabelki, przed formem
+                        XmlNode formNode = tableNode.SelectSingleNode("form");
+                        tableNode.InsertBefore(labelField, formNode);
+
+                        XmlNodeList fieldsNodes = xmlPanelNode.SelectNodes("field");
+
+                        foreach (XmlNode xmlFiledsNode in fieldsNodes)
+                        {
+                            //Nadaje target
+                            XmlAttribute fieldTargetAttribute = doc.CreateAttribute("target");
+                            fieldTargetAttribute.Value = targetAttribute.Value;
+                            xmlFiledsNode.Attributes.Append(fieldTargetAttribute);
+
+                            //przerzucam przed form
+                            tableNode.InsertBefore(xmlFiledsNode, formNode);
+
+                            //Gotowe!
+                        }
+
+                        //kasuje panel
+                        category.RemoveChild(xmlPanelNode);
+                    }
+
+                   
+                }
+
+                if (!inheritedInPanel)
+                {
+                    //Do usunięcią w fazie gdy będę szczytywał już informacje z inherita
+                    //jeżeli nie było panelu inherita skasuj kategorię
+                    tableNode.RemoveChild(category);
+                }
+            }
+
+            doc.Save(path);
+
+            MessageBox.Show("Panels removed succesfully!");
+        }
+
+
+        private async void RemovePanelsAndCreateLabels(object sender, RoutedEventArgs e)
+        {
+            string path = pathToXMLFile.Text;
+            await Task.Run(() => {
+                RemovePanelsAndCreateLabels(path);
+            });
+        }
     }
 }
