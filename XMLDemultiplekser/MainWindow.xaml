@@ -20,10 +20,12 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <TextBox x:Name="pathToXMLFile" Grid.Row="0" Grid.Column="2"  />
         <Label Content="Path to file" Grid.Column="1" Grid.Row="0" />
         <Label Content="Path to shared" Grid.Column="1" Grid.Row="1" />
+        <Label Content="Path module:" Grid.Column="1" Grid.Row="2" />
         <TextBox x:Name="pathToInherited" Grid.Row="1" Grid.Column="2"  />
         <Button Content="  Load XML file   " Grid.Row="0" Grid.Column="0" Click="LoadXMLFile" />
         <Button Content="Create Categories" Grid.Row="3" Grid.Column="0" Click="CreateCategories" />
@@ -31,6 +33,6 @@
         <Button Content="Add Inherited to showtables"  Grid.Row="1" Grid.Column="0" Click="AddInherited"   />
         <Button Content="Create Xml Include files"  Grid.Row="4" Grid.Column="0" Click="CreateXmlFiles"   />
         <Button Content="Delete Panels And Create Labels" Grid.Row="5" Grid.Column="0" Click="RemovePanelsAndCreateLabels" />
-
+        <Button Content="Create Options" Grid.Row="6" Grid.Column="0" Click="CreateOptionsFile" />
     </Grid>
 </Window>

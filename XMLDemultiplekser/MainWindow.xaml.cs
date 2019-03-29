@@ -16,6 +16,7 @@ using System.Windows.Navigation;
 
 using System.Xml;
 using System.IO;
+using XMLDemultiplekser.OptionsXML;
 
 namespace XMLDemultiplekser
 {
@@ -670,13 +671,18 @@ namespace XMLDemultiplekser
             MessageBox.Show("Panels removed succesfully!");
         }
 
-
         private async void RemovePanelsAndCreateLabels(object sender, RoutedEventArgs e)
         {
             string path = pathToXMLFile.Text;
             await Task.Run(() => {
                 RemovePanelsAndCreateLabels(path);
             });
+        }
+
+        private void CreateOptionsFile(object sender, RoutedEventArgs e)
+        {
+            OptionsParser optionsParser = new OptionsParser(pathToXMLFile.Text,pathToInherited.Text);
+            optionsParser.CreateIncludeOptionFilesFromXmlFile();
         }
     }
 }
