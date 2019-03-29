@@ -681,8 +681,10 @@ namespace XMLDemultiplekser
 
         private void CreateOptionsFile(object sender, RoutedEventArgs e)
         {
-            OptionsParser optionsParser = new OptionsParser(pathToXMLFile.Text,pathToInherited.Text);
-            optionsParser.CreateIncludeOptionFilesFromXmlFile();
+            OptionModuleParser optionModuleParser = new OptionModuleParser(pathToModule.Text, pathToInherited.Text);
+            optionModuleParser.ParseInheritedOptionsForModule();
+            //OptionsParser optionsParser = new OptionsParser(pathToXMLFile.Text, pathToInherited.Text);
+            //optionsParser.CreateInheritedOptionFilesFromXmlFile();
         }
     }
 }

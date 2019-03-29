@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace XMLDemultiplekser.OptionsXML
@@ -21,7 +22,7 @@ namespace XMLDemultiplekser.OptionsXML
             ListOfTableFiles = new List<string>();
         }
 
-        public void ParseOptionsForModule()
+        public void ParseIncludeOptionsForModule()
         {
             SetTableFiles();
 
@@ -31,6 +32,17 @@ namespace XMLDemultiplekser.OptionsXML
             }
 
         }
+
+        public void ParseInheritedOptionsForModule()
+        {
+            SetTableFiles();
+
+            foreach(string pathToTable in ListOfTableFiles)
+            {
+                OptionsParser optionsParser = new OptionsParser(pathToTable, _pathToShared);
+                optionsParser.CreateInheritedOptionFilesFromXmlFile();
+            }
+        } 
 
         private void ParseOptionForTableFile(string filePath)
         {
@@ -52,13 +64,9 @@ namespace XMLDemultiplekser.OptionsXML
 
         private bool isTable(string filePath)
         {
-            var prefix = "";
-            for(var i = 0; i < 3; i++)
-            {
-                prefix += filePath[i];
-            }
-
-            return prefix == "dk_";
+            Regex regex = new Regex(@"\\(dk_)");
+            var match = regex.Match(filePath);
+            return match.Success;
         }
     }
 }

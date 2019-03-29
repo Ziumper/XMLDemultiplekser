@@ -46,7 +46,62 @@ namespace XMLDemultiplekser.OptionsXML
             }
 
             SaveXmlDocument(doc, _pathToOriginalXmlFile);
-            MessageBox.Show("Successfully created XML options files and include files");
+        }
+
+        public void CreateInheritedOptionFilesFromXmlFile()
+        {
+            XmlDocument doc = new XmlDocument();
+            try
+            {
+                doc.Load(_pathToOriginalXmlFile);
+                SetListOfFieldsWithOptions(doc);
+
+                foreach (XmlNode fieldWithOptions in ListOfFieldsWithOptions)
+                {
+                    if (!IsOptionIsInShared(fieldWithOptions))
+                    {
+                        CreateInheritedOptionfile(fieldWithOptions);
+                    }
+                    CreateInhereitedNodeForOptionNodeInSourceDocument(doc, fieldWithOptions);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
+            SaveXmlDocument(doc, _pathToOriginalXmlFile);
+        }
+
+        private void CreateInheritedOptionfile(XmlNode fieldWithOptions)
+        {
+            XmlDocument optionDocument = new XmlDocument();
+
+            XmlNode newFieldNode = optionDocument.ImportNode(fieldWithOptions, true);
+
+            newFieldNode.Attributes.RemoveAll();
+            XmlAttribute nameAttribute = optionDocument.CreateAttribute("name");
+            nameAttribute.Value = "f1";
+            newFieldNode.Attributes.Append(nameAttribute);
+
+            optionDocument.AppendChild(newFieldNode);
+
+            string pathToFile = GetPathToOptionsFile(fieldWithOptions);
+
+            SaveXmlDocument(optionDocument, pathToFile);
+        }
+
+        private void CreateInhereitedNodeForOptionNodeInSourceDocument(XmlDocument doc,XmlNode fieldNode)
+        {
+            string optionFileName = GetOptionsFileName(fieldNode);
+            XmlNodeList xmlNodeList = fieldNode.SelectNodes("option");
+            foreach (XmlNode optionNodeChild in xmlNodeList)
+            {
+                fieldNode.RemoveChild(optionNodeChild);
+            }
+
+            InheriteOption(doc, fieldNode, optionFileName);
         }
 
         private void CreateIncludeNodeForOptionNodeInSourceDocument(XmlDocument doc, XmlNode fieldNode)
@@ -60,6 +115,14 @@ namespace XMLDemultiplekser.OptionsXML
             }
 
             IncludeOption(doc, fieldNode, optionFileName);
+        }
+
+        private void InheriteOption(XmlDocument doc, XmlNode fieldNode, string optionFileName)
+        {
+            XmlAttribute inheritedAttriubte = doc.CreateAttribute("inherited");
+            inheritedAttriubte.Value = "../../shared/options/" + optionFileName;
+
+            fieldNode.Attributes.Append(inheritedAttriubte);
         }
 
         private void IncludeOption(XmlDocument doc,XmlNode fieldNode,string optionFileName)
