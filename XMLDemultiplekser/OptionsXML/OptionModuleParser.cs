@@ -12,10 +12,12 @@ namespace XMLDemultiplekser.OptionsXML
         public List<string> ListOfTableFiles { get; }
 
         private string _pathToModule;
+        private string _pathToShared;
 
-        public OptionModuleParser(string pathToModule)
+        public OptionModuleParser(string pathToModule, string pathToShared)
         {
             _pathToModule = pathToModule;
+            _pathToShared = pathToShared;
             ListOfTableFiles = new List<string>();
         }
 
@@ -23,13 +25,17 @@ namespace XMLDemultiplekser.OptionsXML
         {
             SetTableFiles();
 
-            
+            foreach(string pathToTable in ListOfTableFiles)
+            {
+                ParseOptionForTableFile(pathToTable);
+            }
 
         }
 
         private void ParseOptionForTableFile(string filePath)
         {
-
+            OptionsParser optionsParser = new OptionsParser(filePath, _pathToShared);
+            optionsParser.CreateIncludeOptionFilesFromXmlFile();
         }
 
         private void SetTableFiles()
