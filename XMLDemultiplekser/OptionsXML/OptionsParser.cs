@@ -169,10 +169,6 @@ namespace XMLDemultiplekser.OptionsXML
         private XmlNode GetContentNode(XmlDocument optionDocument)
         {
             XmlNode newContentNode = optionDocument.CreateNode(XmlNodeType.Element, "content", "");
-            XmlAttribute nameAttriubte = optionDocument.CreateAttribute("name");
-            var nameAttributeValue = "c1";
-            nameAttriubte.Value = nameAttributeValue;
-            newContentNode.Attributes.Append(nameAttriubte);
             return newContentNode;
         }
         

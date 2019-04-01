@@ -686,5 +686,31 @@ namespace XMLDemultiplekser
             //OptionsParser optionsParser = new OptionsParser(pathToXMLFile.Text, pathToInherited.Text);
             //optionsParser.CreateInheritedOptionFilesFromXmlFile();
         }
+
+        private void LoadPathToSharedFolder(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            bool? canOpen = ofd.ShowDialog();
+            if (canOpen == true)
+            {
+                pathToInherited.Text = ofd.FileName;
+            }
+        }
+
+        private void LoadPathToModuleFolder(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            bool? canOpen = ofd.ShowDialog();
+            if (canOpen == true)
+            {
+                pathToModule.Text = ofd.FileName;
+            }
+        }
+
+        private void CreateIncludeOptionsFile(object sender, RoutedEventArgs e)
+        {
+            OptionModuleParser optionModuleParser = new OptionModuleParser(pathToModule.Text, pathToInherited.Text);
+            optionModuleParser.ParseIncludeOptionsForModule();
+        }
     }
 }
