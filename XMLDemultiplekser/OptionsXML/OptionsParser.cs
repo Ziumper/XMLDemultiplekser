@@ -128,9 +128,6 @@ namespace XMLDemultiplekser.OptionsXML
         private void IncludeOption(XmlDocument doc,XmlNode fieldNode,string optionFileName)
         {
             XmlNode includeNode = doc.CreateNode(XmlNodeType.Element, "include", "");
-            XmlAttribute includeNameAttriubute = doc.CreateAttribute("name");
-            includeNameAttriubute.Value = "i1";
-            includeNode.Attributes.Append(includeNameAttriubute);
             includeNode.InnerText = "../../shared/options/" + optionFileName;
 
             fieldNode.AppendChild(includeNode);
